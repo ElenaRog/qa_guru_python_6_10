@@ -1,5 +1,3 @@
-from selene import have
-
 from classes.registration_page import RegistrationPage
 from classes.user_registration import Student, Gender, Hobbies, Birthday
 
@@ -19,6 +17,7 @@ def test_student_registration():
         state='Uttar Pradesh',
         city='Agra')
 
-    student.open()
-    student.register()
-    student.should_have_registered()
+    registration_page = RegistrationPage()
+    registration_page.open()
+    registration_page.register(student)
+    registration_page.should_have_registered(student)

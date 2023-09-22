@@ -3,6 +3,7 @@ from selene.support.shared import browser
 from selene import have, be
 
 from tests.conftest import RES_DIR
+from classes.user_registration import Student
 
 
 class RegistrationPage:
@@ -15,57 +16,47 @@ class RegistrationPage:
         # )
         # browser.all('[id^=google_ads][id$=container__]').perform(command.js.remove)
 
-    def fill_name(self, value):
-        browser.element('#firstName').type(value)
-
-    def fill_last_name(self, value):
-        browser.element('#lastName').type(value)
-
-    def fill_email(self, value):
-        browser.element('#userEmail').type(value)
-
-    def fill_gender(self, value):
-        browser.all('[name=gender]').element_by(have.value(value)).element('..').click()
-
-    def fill_number(self, value):
-        browser.element('#userNumber').type(value)
-
-    def fill_date_of_birth(self, year, month, day):
+    @staticmethod
+    def register(student: Student):
+        browser.element('#firstName').type(student.first_name)
+        browser.element('#lastName').type(student.last_name)
+        browser.element('#userEmail').type(student.email)
+        browser.all('[name=gender]').element_by(have.value(student.gender.value)).element('..').click()
+        browser.element('#userNumber').type(student.number)
         browser.element('#dateOfBirthInput').click()
-        browser.element('.react-datepicker__month-select').send_keys(month)
-        browser.element('.react-datepicker__year-select').send_keys(year)
-        browser.element(f'.react-datepicker__day--0{day}:not(.react-datepicker__day--outside-month)').click()
-
-    def fill_subject(self, value):
-        browser.element('#subjectsInput').type(value).press_enter()
-
-    def fill_hobbies(self, value):
-        browser.all('.custom-checkbox').element_by(have.exact_text(value)).click()
-
-    def download_picture(self, file):
+        browser.element('.react-datepicker__month-select').send_keys(student.date_of_birth.month)
+        browser.element('.react-datepicker__year-select').send_keys(student.date_of_birth.year)
+        browser.element(
+            f'.react-datepicker__day--0{student.date_of_birth.day}:not(.react-datepicker__day--outside-month)').click()
+        browser.element('#subjectsInput').type(student.subject).press_enter()
+        browser.all('.custom-checkbox').element_by(have.exact_text(student.hobbies.value)).click()
         browser.element('#uploadPicture').locate().send_keys(
-            os.path.join(RES_DIR, file)
+            os.path.join(RES_DIR, student.picture)
         )
-
-    def fill_address(self, value):
-        browser.element('#currentAddress').type(value)
-
-    def fill_state(self, value):
+        browser.element('#currentAddress').type(student.address)
         browser.element('#state').click()
         browser.all('[id^=react-select][id*=option]').element_by(
-            have.exact_text(value)
+            have.exact_text(student.state)
         ).click()
-
-    def fill_city(self, value):
         browser.element('#city').click()
         browser.all('[id^=react-select][id*=option]').element_by(
-            have.exact_text(value)
+            have.exact_text(student.city)
         ).click()
-
-    @staticmethod
-    def submit():
         browser.element('#submit').should(be.visible).click()
 
-    def registered_user_data(self):
-        return browser.element('.table').all('td').even
-
+    @staticmethod
+    def should_have_registered(student: Student):
+        browser.element('.table').all('td').even.should(
+            have.exact_texts(
+                f'{student.first_name} {student.last_name}',
+                student.email,
+                student.gender.female.value,
+                student.number,
+                student.date_of_birth.bday,
+                student.subject,
+                student.hobbies.sports.value,
+                student.picture,
+                student.address,
+                f'{student.state} {student.city}'
+            )
+        )
